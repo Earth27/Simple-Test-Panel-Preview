@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>JEE/NEET Test</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			background: linear-gradient(to right, #4facfe, #00f2fe);
+			padding: 20px;
+			margin: 0;
+		}
+
+		.container,
+		.start-screen,
+		.result-screen {
+			width: 90%;
+			max-width: 500px;
+			background: white;
+			padding: 20px;
+			border-radius: 10px;
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+			text-align: center;
+			position: relative;
+		}
+
+		.ekr-label {
+			position: absolute;
+			bottom: 5px;
+			right: 10px;
+			font-size: 12px;
+			color: gray;
+			font-weight: bold;
+		}
+
+		.description {
+			font-size: 14px;
+			color: #333;
+			margin-bottom: 20px;
+		}
+
+		.question-box {
+			min-height: 100px;
+			font-size: 18px;
+			margin-bottom: 15px;
+			display: flex;
+			align-items: center;
+		}
+
+		.question-number {
+			font-weight: bold;
+			margin-right: 10px;
+		}
+
+		.options button {
+			display: block;
+			width: 100%;
+			margin: 8px 0;
+    	margin-bottom: 20px;
+			padding: 12px;
+			border: none;
+			background: #ddd;
+			cursor: pointer;
+			border-radius: 5px;
+			font-size: 16px;
+			transition: background 0.3s;
+		}
+
+		.options button.selected {
+			background: #4CAF50;
+			color: white;
+		}
+
+  	.options button.reviewed-option {
+    	background: #D8BFD8 !important; /* Light Violet for all options if reviewed */
+      	color: black;
+  	}
+	
+  	.options button.reviewed-selected-option {
+    	background: #D8BFD8 !important; /* Light Violet only for selected option */
+	    color: black;
+	  }
+	
+    	/* Ensure question number box also turns violet */
+	  .review-box button.reviewed {
+	    background: #D8BFD8 !important; /* Light Violet */
+	      color: black;
+  	}
+
+		.nav-buttons {
+				display: flex;
+				justify-content: space-between; /* Ensures equal spacing */
+				gap: 5px; /* Adds spacing between buttons */
+				width: 100%;
+		}
+				
+		.nav-buttons button {
+				flex: 1; /* Makes all buttons equal in size */
+				padding: 12px;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				font-size: 14px;
+				margin: 5px 0; /* Adjust vertical margin */
+				text-align: center;
+		}
+
+		.start-btn,
+		.submit-btn {
+			padding: 12px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 14px;
+			margin: 5px;
+			width: 33%;
+		}
+
+		.submit-btn {
+			background: #dc3545;
+			color: white;
+		}
+
+		.start-btn {
+			background: #28a745;
+			color: white;
+		}
+
+		.review-box {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 5px;
+			margin-top: 20px;
+		}
+
+		.review-box button {
+			width: 35px;
+			height: 35px;
+			border: none;
+			cursor: pointer;
+			border-radius: 5px;
+			background: white;
+			border: 1px solid #ddd;
+		}
+
+	  .reviewed {
+    	background: #D8BFD8 !important; /* Light Violet */
+    	color: black;
+  	}
+
+		.answered {
+			background: blue !important;
+			color: white;
+		}
+
+		/* Custom Confirmation Box */
+		.confirm-box {
+			display: none;
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: white;
+			padding: 20px;
+			border-radius: 10px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+			text-align: center;
+			z-index: 1000;
+		}
+
+		.confirm-box button {
+			padding: 10px;
+			margin: 5px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 14px;
+		}
+
+		.confirm-btn {
+			background: #28a745;
+			color: white;
+		}
+
+		.cancel-btn {
+			background: #dc3545;
+			color: white;
+		}
+
+		.overlay {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 999;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="start-screen" id="startScreen">
+		<h1>JEE/NEET Test</h1>
+		<p class="description">It is a 50 questions
+			test.<br>From Physics and Chemistry only.<br>Competitive exams level based questions.<br>First 25 questions from Physics.<br>Next 25 questions from Chemistry.<br>Each correct answer carries +4 marks.<br>Each incorrect answer carries -1 mark.</p>
+			<button class="start-btn" onclick="startTest()">Start Test</button>
+			<div class="ekr-label">EKR</div>
+	</div>
+
+	<div class="container" id="testContainer" style="display: none;">
+		<h2>JEE/NEET Test</h2>
+		<div class="question-box">
+			<span class="question-number" id="question-number"></span>
+			<span id="question"></span>
+		</div>
+		<div class="options" id="options"></div>
+		<div class="nav-buttons">
+			<button onclick="prevQuestion()">Previous</button>
+			<button onclick="markForReview()">Mark for Review</button>
+			<button onclick="nextQuestion()">Next</button>
+		</div>
+		<button class="submit-btn" onclick="showConfirmBox()">Submit</button>
+		<div class="review-box" id="review"></div>
+		<div class="ekr-label">EKR</div>
+	</div>
+
+	<div class="confirm-box" id="confirmBox">
+		<p>Are you sure you want to submit your test?</p>
+		<button class="confirm-btn" onclick="submitExam()">Yes</button>
+		<button class="cancel-btn" onclick="hideConfirmBox()">No</button>
+	</div>
+	<div class="overlay" id="overlay"></div>
+
+	<div class="result-screen" id="resultScreen" style="display: none;">
+		<div class="ekr-label">EKR</div>
+	</div>
+
+	<script>
+		let questions = [
+		  { q: "Ice at -10°C is to be converted into steam at 110°C. The mass of ice is 10⁻¹ kg. What amount of heat isrequired?",options: ["ΔQ = 730 cal", "ΔQ = 900 cal", "ΔQ = 1210 cal", "ΔQ = 870 cal"], answer: 0 },
+		
+	  	{ q: "When a thin convex lens of glass 5D is immersed in a liquid, it behaves as a diverging lens of focal length 100cm. What is the refractive index of the liquid?", options: ["3/5", "5/3", "2/3", "1"], answer: 1 },
+		
+	  	{ q: "The SI unit of electric charge is:", options: ["Coulomb", "Ampere", "Volt", "Ohm"], answer: 0 },
+		
+	  	{ q: "A solid sphere of uniform density and radius R exerts a gravitational force of attraction F1 on the particle P, distant 2R from the center of the sphere. A spherical cavity of radius R/3 is now formed in the sphere. The sphere withthe cavity now applies a gravitational force F2 on the same particle P. Find the ratio F2/F1.", options: ["7/9", "9/7", "11/12", "12/11"], answer: 2 },
+		
+    	{ q: "The dimensions of voltage in terms of mass (M), length (L), time (T), and ampere (A) are?", options: ["[M L² T⁻³A¹]", "[M L² T⁻² A⁻²]", "[M L² T⁻³ A⁻¹]", "[M L² T³ A⁻¹]"], answer: 2 }  ,
+
+	  	{ q: "Moment of inertia of a uniform disc of radius R and mass M about an axis passing through its center and perpendicular to the plane is I1. If a circular hole of diameter R whose rim passes through the center is cut, the moment of inertia of the remaining part of the disc about a perpendicular axis, passing through the center, is I2. Find the ratio I1/I2.",	options: ["16/13", "32/13", "13/31", "13/32"], answer: 0 },
+		
+	  	{ q: "A charged particle moving parallel to a magnetic field experiences:", options: ["Maximum force", "Minimum force", "Zero force", "Infinite force"], answer: 2 },
+		
+	  	{ q: "If a ball is thrown at 60 m/s at an angle of 30°, the ratio of height traveled in the 1st second to the height traveled in the last second before reaching the maximum height is?", options: ["1:5", "5:1", "2:7", "7:2"], answer: 1 },
+		
+	  	{ q: "A body of mass 1000 kg is moving horizontally with a velocity 6 m/s. If 200 kg extra mass is added, the final velocity (in m/s) is:", options: ["2", "3", "5", "6"], answer: 2 },
+		
+	  	{ q: "Calculate the focal length of a convex lens in air if the radii of its surfaces are 60 cm and 15 cm. Refractive index of glass = 1.5", options: ["24 cm", "18 cm", "28 cm", "22 cm"], answer: 2 },
+		
+	  	{ q: "What is the speed of light in vacuum?", options: ["3 × 10^8 m/s", "1.5 × 10^8 m/s", "2 × 10^8 m/s", "4 × 10^8 m/s"], answer: 0 },
+		
+	  	{ q: "Two metals A and B have work functions 2.2 eV and 1.9 eV respectively and are illuminated by monochromatic light of wavelength 550 nm. Which metal will show the Photoelectric effect?", options: ["Only Metal A", "Only Metal B", "Both", "None"], answer: 2 },
+		
+	  	{ q: "If B represents magnetic field and μ represents permeability, then the dimension of B²/μ is the same as:", options: ["Length per unit current", "Current per unit length", "Length per unit charge", "Charge per unit length"], answer: 1 },
+		
+	  	{ q: "Two drops of radii 2 cm and 8 cm are in contact. The radius of common surface is",	options: ["8/3 cm", "2 cm", "8 cm", "5/3 cm"], answer: 1 },
+		
+	  	{ q: "A 10μC charge is divided into two parts and placed at 1 cm distance so that the repulsive force between them is	maximum. The charges of the two parts are:",	options: ["7 μC, 3 μC", "9 μC, 1 μC", "8 μC, 2 μC", "5 μC, 5 μC"], answer: 2 },
+		
+	  	{ q: "Find the dimensions of Magnetic field Strength-",	options: ["[AL]", "[AL-1]", "[MAL]", "[MALT-1]"], answer: 1 },
+		
+	  	{ q: "An electron is projected with uniform velocity along the axis inside a current carrying long solenoid. Then:",	options: ["The electron path will be circular about the axis", "The electron will experience a force at 45° to the axis	and execute a helical path", "The electron will continue to move with uniform velocity along the axis of the solenoid", "The electron will be accelerated along the axis"], answer: 2 },
+		
+	  	{ q: "A wire of length a/2 and charge density λ is kept along one of a cube of side length a. The wire's midpoint is at the midpoint of the edge. Find the flux through the whole cube.", options: ["X", "Y", "Z", "W"], answer: 1 },
+		
+	  	{ q: "An electron is projected at V₀ = 10⁶ m/s parallel to the plates of a capacitor. Find the y-component of the velocity of the electron as it comes out of the plates.", options: ["1.6 × 10⁴ m/s", "1.6 × 10⁶ m/s", "1.6 × 10⁵ m/s", "1.6 × 10³ m/s"], answer: 2 },
+
+	    { q: "The unit of power is:", options: ["Watt", "Joule", "Newton", "Pascal"], answer: 0 },
+		
+	  	{ q: "In YDSE, at a point, constructive interference takes place. Which among the given options could be the path difference of waves reaching that point?", options: ["2.5λ", "3λ", "7λ/2", "0.5λ"], answer: 1 },
+		
+	  	{ q: "Solid sphere of mass M, radius R exerts force F on a point mass. Now a concentric spherical mass M/7 is removed. What is new force?", options: ["F/7", "6/7 F", "5F/7", "3F/7"], answer: 1 },
+		
+	  	{ q: "Newton's first law is also known as:",	options: ["Law of Inertia", "Law of Acceleration", "Law of Motion", "Law of Momentum"], answer: 0 },
+		
+    	{ q: "The efficiency of a Carnot engine depends on?", options: ["Work done", "Heat absorbed", "Temperature of	reservoirs", "Volume change"], answer: 2 } ,
+
+	  	{ q: "A capacitor is charged by a battery to charge Q1. Now the battery is disconnected, and a dielectric slab of dielectric constant K is inserted between the gaps of the plates. Now charge on the capacitor is Q2. Find Q1/Q2.",	options: ["1", "1/2", "2", "2/3"], answer: 0 },
+		
+  		{ q: "Which among the following has the highest boiling point?",	options: ["CH3CH2CH2CH2 - OH", "CH3CH2CH2CH3", "CH3CH2CH2CHO", "H5C2 - O - C2H5"], answer: 0 },
+		
+  		{ q: "The number of molecules and moles in 2.8375 litres of O2 at STP are respectively",	options: ["1.505 x 10^23 and 0.250 mol", "7.527 x 10^23 and 0.125 mol", "7.527 x 10^22 and 0.125 mol", "7.527 x 10^22 and 0.250 mol"], answer: 3 },
+		
+  		{ q: "A halogen compound ‘A’ on hydrolysis with dilute alkali followed by acidification gives acetic acid. The compound X is -", options: ["ClCH2CH2Cl", "CH3CHCl2", "ClCH2CHCl2", "CH3CCl3"], answer: 1 },
+		
+	  	{ q: "Assertion A : [CoCl(NH3)5]2+ absorbs at lower wavelength of light with respect to [Co(NH3)5(H2O)]3+\nReason R : It is because the wavelength of the light absorbed depends on the oxidation state of the metal ion.", options: ["A is true but R is false", "Both A and R are true and R is the correct explanation of A", "Both A and R are true and R is NOT the correct explanation of A", "A is false but R is true"], answer: 1 },
+		
+	  	{ q: "A short peptide on complete hydrolysis produces 3 moles of glycine (G), two moles of leucine (L), and two moles of valine (V) per mole of peptide. The number of peptide linkages in it are _______.", options: ["4", "5", "6", "7"], answer: 2 },
+		
+	  	{ q: "The total number of 'Sigma' and 'Pi' bonds in 2-formyl hex-4-enoic acid is _________.",	options: ["20", "21", "22", "23"], answer: 2 },
+		
+	  	{ q: "By the electrolysis of aq. solution of CuSO4, the products obtained at both the electrodes are", options: ["O2 at anode and H2 at cathode", "H2 at anode and Cu at cathode", "O2 at anode and Cu at cathode", "H2S2O8 at anode and O2 at cathode"], answer: 2 },
+		
+  		{ q: "IUPAC name of an element with atomic number 119 is",	options: ["ununennium", "unnilennium", "unununnium", "ununoctium"], answer: 0 },
+		
+    	{ q: "Calculate the number of stereoisomers of CH₃—CH=CH—CH—CH₃ (with OH group attached).",	options: ["4", "2", "6", "8"], answer: 0 },
+		
+	  	{ q: "An electron of He+ is present in the 3rd excited state. Find its de-Broglie wavelength.",	options: ["6.28Å", "1.66Å", "3.32Å", "13.28Å"], answer: 0 },
+		
+	  	{ q: "Compare boiling point of given solutions: (i) 10^-4 NaCl, (ii) 10^-3 NaCl, (iii) 10^-2 NaCl, (iv) 10^-4 urea",	options: ["I > II >III > IV", "III > II > I > IV", "II > I > III > IV", "III > I > II > IV"], answer: 1 },
+		
+	  	{ q: "Which of the following has maximum size out of Al³⁺, Mg²⁺, F⁻, Na⁺?",	options: ["Al³⁺", "Mg²⁺", "F⁻", "Na⁺"], answer: 2 },
+		
+	  	{ q: "If the radius of the first orbit of the H atom is a0, then what is the radius of the first excited state of He+ ion?",	options: ["a0/2", "2a0", "a0", "5a0"], answer: 1 },
+		
+	  	{ q: "Which of the following acids is present in vitamin C?",	options: ["Ascorbic acid", "Saccharic acid", "Aspartic acid", "Adipic acid"], answer: 0 },
+		
+	  	{ q: "What is the charge on metal and shape of complex of [NiCl4]2- respectively?",		options: ["+2, Tetrahedral", "+2, Square planar", "+4, Tetrahedral", "+4, Square Planar"], answer: 0 },
+		
+	  	{ q: "The electrolysis product of which is H₂S₂O₈?",	options: ["Dil H₂SO₄", "CuSO₄ (aq)", "Conc. H₂SO₄", "None of these"], answer: 2 },
+		
+    	{ q: "The number of species from the following in which the central atom uses sp3 hybrid orbitals in its bonding is NH3,	SO2, SiO2, BeCl2, CO2, H2O, CH4, BF3?", options: ["2", "3", "4", "5"], answer: 2 },
+	
+    	{ q: "The number of non-polar molecules from the following is HF, H2O, SO2, H2, CO2, CH4, NH3, HCl, CHCl3, BF3?",	options: ["2", "3", "4", "5"], answer: 2 },
+	
+    	{ q: "Sum of bond order of CO and NO+ is _______?", options: ["4", "5", "6", "7"], answer: 2 },
+
+    	{ q: "The dipole moment order of CCl4, CHCl3, and CH4 is?", options: ["CCl4 < CH4 < CHCl3", "CH4 = CCl4 < CHCl3" , "CH4 < CCl4 < CHCl3" , "CHCl3 < CH4 = CCl4" ], answer: 1 }, { q: "The IUPAC name of the following compound is?" ,	options: ["2-Aminobutanenitrile", "3-Aminopropanenitrile" , "2-Aminopentanenitrile" , "3-Aminobutanenitrile" ],	answer: 0 }, {	q: "The descending order of acidity for the following carboxylic acid is A. CH3COOH B. F3C - COOH C. ClCH2 - COOH D. FCH2 - COOH E. BrCH2 - COOH?"	, options: ["B> C > D > E > A", "D > B > A > E > C", "B > D > C > E > A", "E > D > B > A > C"], answer: 2 },
+	
+	   	{ q: "The number of molecules and moles in 2.8375 litres of O2 at STP are respectively?", options: ["1.505 x 10^2		and 0.250 mol", "7.527 x 10^23 and 0.125 mol", "7.527 x 10^22 and 0.125 mol", "7.527 x 10^22 and 0.250 mol"], 	answer: 3 },
+	
+	  	{ q: "On electrolysis of dil. H2SO4 using Pt-electrode, the product obtained at anode will be?", options: ["H2S 	gas", "SO2", "H2 gas", "O2 gas"], answer: 3 },
+
+	  	{ q: "The correct decreasing order of electronegativity is:", options: ["F > Cl > I > Br", "Cl > F > Br > I", "F > Cl > Br > I", "Br > F > I > Cl"], answer: 2 },
+		];
+
+		let currentQuestion = 0;
+    let userAnswers = Array(questions.length).fill(null);
+    let reviewStatus = Array(questions.length).fill(false); 
+
+    function startTest() {
+        document.getElementById("startScreen").style.display = "none";
+        document.getElementById("testContainer").style.display = "block";
+        loadQuestion(0);
+    }
+
+  	function loadQuestion(index) {
+    	currentQuestion = index;
+    	document.getElementById("question-number").innerText = `Q${index + 1}:`;
+	
+      	let qData = questions[index];
+    	let optionLabels = ["A", "B", "C", "D"]; // Labels for options
+	
+    	document.getElementById("question").innerText = qData.q;
+    	document.getElementById("options").innerHTML = qData.options
+    	.map((opt, i) =>
+    	`<button onclick='selectOption(${index}, ${i})' class='${userAnswers[index] === i ? "selected" : ""}'>
+	                <b>${optionLabels[i]}.</b> ${opt}
+	            </button>`
+    	)
+	    .join('');
+	
+    	updateReviewPanel();
+  	}
+
+  	function selectOption(qIndex, optIndex) {
+      	if (userAnswers[qIndex] === optIndex) {
+      	userAnswers[qIndex] = null; // Deselect if same option is clicked
+      	} else {
+      	userAnswers[qIndex] = optIndex; // Otherwise, select
+      	}
+      	updateQuestionUI(qIndex); // New function to update colors correctly
+  	}
+
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            currentQuestion--;
+            loadQuestion(currentQuestion);
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestion < questions.length - 1) {
+            currentQuestion++;
+            loadQuestion(currentQuestion);
+        }
+    }
+
+    function markForReview() {
+      reviewStatus[currentQuestion] = !reviewStatus[currentQuestion]; // Toggle review status
+      updateQuestionUI(currentQuestion); // Update colors correctly
+    }
+
+
+
+    function updateReviewPanel() {
+        document.getElementById("review").innerHTML = questions.map((_, i) =>
+            `<button class='${userAnswers[i] !== null ? "answered" : ""} ${reviewStatus[i] ? "reviewed" : ""}'
+            onclick='jumpToQuestion(${i})'>${i + 1}</button>`
+        ).join('');
+    }
+
+	  function updateQuestionUI(qIndex) {
+	     let optionsContainer = document.getElementById("options");
+    	let optionLabels = ["A", "B", "C", "D"];
+        	let isReviewed = reviewStatus[qIndex];
+    	let selectedIndex = userAnswers[qIndex];
+	
+	        optionsContainer.innerHTML = questions[qIndex].options
+    	.map((opt, i) => {
+    	let isSelected = selectedIndex === i;
+	
+    	// Apply correct color logic
+    	let buttonClass = isReviewed
+    	? isSelected
+    	? "reviewed-selected-option" // Violet if selected & reviewed
+    	: "reviewed-option" // Violet if reviewed but not selected
+    	: isSelected
+    	? "selected" // Green if selected
+    	: "";
+	
+    	return `<button onclick='selectOption(${qIndex}, ${i})' class='${buttonClass}'>
+	                        <b>${optionLabels[i]}.</b> ${opt}
+	                    </button>`;
+    	})
+    	.join('');
+	
+    	// Update the review panel after changing question UI
+    	updateReviewPanel();
+  	}
+
+    function jumpToQuestion(index) {
+        currentQuestion = index;
+        loadQuestion(index);
+    }
+
+    function showConfirmBox() {
+        document.getElementById("confirmBox").style.display = "block";
+        document.getElementById("overlay").style.display = "block";
+    }
+
+    function hideConfirmBox() {
+        document.getElementById("confirmBox").style.display = "none";
+        document.getElementById("overlay").style.display = "none";
+    }
+
+  	function submitExam() {
+    	hideConfirmBox();
+	
+    	let score = 0, correct = 0, incorrect = 0, unattempted = 0;
+		  let optionLabels = ["A", "B", "C", "D"];
+    	// Table header
+    	let summary = `
+      	<h3>Results</h3>
+    	<table border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
+    		<tr>
+    			<th>Q.No</th>
+    			<th>Selected Answer</th>
+    			<th>Status</th>
+    		</tr>`;
+	
+    		questions.forEach((q, i) => {
+    		let userAnswer = userAnswers[i];
+    		let isCorrect = userAnswer === q.answer;
+	
+		  	let selectedAnswer = userAnswer !== null
+		    	? `<b>${optionLabels[userAnswer]}.</b> ${q.options[userAnswer]}`
+			    : "<b>Unattempted</b>";
+    		let status = userAnswer === null ? "Unattempted" : isCorrect ? "<span style='color: green;'>Correct</span>" :
+    		"<span style='color: red;'>Wrong</span>";
+	
+    		if (userAnswer === null) {
+      		unattempted++;
+    		} else if (isCorrect) {
+	      	correct++;
+	      	score += 4;
+	    	} else {
+	      	incorrect++;
+      		score -= 1;
+    		}
+
+	    	// Add each row to the table
+	    	summary += `
+	      	<tr>
+	      		<td>Q${i + 1}</td>
+	      		<td>${selectedAnswer}</td>
+	      		<td>${status}</td>
+	      	</tr>`;
+	    	});
+	
+		summary += `
+  	</table>`;
+	
+  	// Score summary
+  	summary += `
+      	<h3>Total Score: ${score}</h3>
+      	<p><b>Correct:</b> ${correct}</p>
+       	<p><b>Incorrect:</b> ${incorrect}</p>
+      	<p><b>Unattempted:</b> ${unattempted}</p>`;
+	
+    	// Display results
+    	document.getElementById("testContainer").style.display = "none";
+    	document.getElementById("resultScreen").innerHTML = summary;
+    	document.getElementById("resultScreen").style.display = "block";
+  	}
+      
+</script>
+</body>
+
+</html>
